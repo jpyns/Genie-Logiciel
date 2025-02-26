@@ -1,4 +1,4 @@
-package JP.Rania.projet.bookmanager.model;
+    package JP.Rania.projet.bookmanager.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,8 +19,8 @@ public class Collection {
     private String name;
 
     @ElementCollection
-    private List<Long> bookIds; // Liste des ID des livres appartenant à cette collection
+    public List<Long> bookIds; // Liste des ID des livres appartenant à cette collection
 
-    private double jaroWinklerDistance;
-    private double jaccardDistance;
+    public double jaroWinklerDistance;
+    public double jaccardDistance;
 }
