@@ -23,4 +23,12 @@ public class Collection {
 
     public double jaroWinklerDistance;
     public double jaccardDistance;
+
+    public void setBookIds(List<Long> bookIds) {
+        this.bookIds = bookIds;
+    }
+
+    public List<Long> getBookIds() {
+        return bookIds;
+    }
 }
