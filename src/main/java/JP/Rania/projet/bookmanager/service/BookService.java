@@ -46,12 +46,14 @@ public class BookService {
         return bookRepository.findById(id);
     }
 
+    // même chose pour ube liste de livres 
+
     public List<Book> getBooksByIds(List<Long> bookIds) {
         return bookIds.stream()
-                .map(this::getBookById) // Utilisation de getBookById pour chaque ID
-                .filter(Optional::isPresent) // Filtrer les Optional vides
-                .map(Optional::get) // Extraire le Book de l'Optional
-                .collect(Collectors.toList()); // Collecter les livres dans une liste
+                .map(this::getBookById) 
+                .filter(Optional::isPresent) 
+                .map(Optional::get) 
+                .collect(Collectors.toList()); 
     }
 
 

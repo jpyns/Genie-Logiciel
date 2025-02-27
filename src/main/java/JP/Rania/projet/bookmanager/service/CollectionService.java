@@ -2,7 +2,6 @@ package JP.Rania.projet.bookmanager.service;
 
 import JP.Rania.projet.bookmanager.model.Book;
 import JP.Rania.projet.bookmanager.model.Collection;
-import JP.Rania.projet.bookmanager.repository.BookRepository;
 import JP.Rania.projet.bookmanager.repository.CollectionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,39 +15,37 @@ import java.util.stream.Collectors;
 public class CollectionService {
 
     private final CollectionRepository collectionRepository;
-    private final BookRepository bookRepository;
     private final DistanceService distanceService;
     private final BookService bookService;
 
     @Autowired
-    public CollectionService(CollectionRepository collectionRepository, BookRepository bookRepository, DistanceService distanceService, BookService bookService) {
+    public CollectionService(CollectionRepository collectionRepository,DistanceService distanceService, BookService bookService) {
         this.collectionRepository = collectionRepository;
-        this.bookRepository = bookRepository;
         this.distanceService = distanceService;
         this.bookService = bookService;
     }
 
-    // Création d'une collection en fournissant une liste d'identifiants de livre
+    // créer collecion à partir list d'identifiants 
     public Collection createCollection(String name, List<Long> bookIds) {
 
-        // Créer la collection
+        //nouvelle collection
         Collection collection = new Collection();
         collection.setName(name);
         collection.setBookIds(bookIds);
 
-        // Calcul des distances de la collection
+        //distances 
         distanceService.calculateDistancesCollection(collection);
 
-        // Sauvegarder la collection
+        //sauvegarde de la collection
         return collectionRepository.save(collection);
     }
 
-    // Sauvegarder une collection
+    //sauvegarder ue collection
     public Collection saveCollection(Collection collection) {
         return collectionRepository.save(collection);
     }
 
-    // Dupliquer une collection
+    //dupliquer collection en changeant le nom
     public Collection duplicateCollection(Long collectionId, String newName) {
         Optional<Collection> existingCollection = collectionRepository.findById(collectionId);
         if (existingCollection.isPresent()) {
@@ -58,17 +55,17 @@ public class CollectionService {
         return null;
     }
 
-    // Récupérer toutes les collections
+    //l’affichage de toutes les collections
     public Iterable<Collection> getAllCollections() {
         return collectionRepository.findAll();
     }
 
-    // Récupérer une collection par ID
+    //l’affichage d’une collection
     public Optional<Collection> getCollectionById(Long id) {
         return collectionRepository.findById(id);
     }
 
-    // Supprimer une collection
+    //la suppression d’un livre d’une collection
     public boolean deleteCollection(Long id) {
         Optional<Collection> collection = getCollectionById(id);
         if (collection.isPresent()) {
@@ -84,13 +81,13 @@ public class CollectionService {
         if (collectionOpt.isPresent()) {
             Collection collection = collectionOpt.get();
             
-            // Retirer le livre de la liste des IDs
+            //supprimer l'id 
             collection.getBookIds().add(bookId);
             
-            // Recalculer les distances pour la collection mise à jour
-            distanceService.calculateDistancesCollection(collection); // Passer l'objet Collection directement
+            // recalculer les distances 
+            distanceService.calculateDistancesCollection(collection); 
             
-            // Sauvegarder la collection mise à jour dans la base de données
+            //sauvegarder
             collectionRepository.save(collection);
             
             return true;
@@ -105,13 +102,13 @@ public class CollectionService {
         if (collectionOpt.isPresent()) {
             Collection collection = collectionOpt.get();
             
-            // Retirer le livre de la liste des IDs
+            //supprimer l'id 
             collection.getBookIds().remove(bookId);
             
-            // Recalculer les distances pour la collection mise à jour
-            distanceService.calculateDistancesCollection(collection); // Passer l'objet Collection directement
+            // recalculer les distances 
+            distanceService.calculateDistancesCollection(collection); 
             
-            // Sauvegarder la collection mise à jour dans la base de données
+            //sauvegarder
             collectionRepository.save(collection);
             
             return true;
@@ -120,7 +117,7 @@ public class CollectionService {
     }
     
 
-    // Trier les livres d'une collection
+    //le tri des livres d’une collection selon : auteur, livre, année
     public Collection sortCollection(Long collectionId, String sortBy) {
         Optional<Collection> collectionOpt = collectionRepository.findById(collectionId);
         if (collectionOpt.isPresent()) {
@@ -151,7 +148,7 @@ public class CollectionService {
         return null;
     }
 
-    // Comparer deux collections
+    //comparer deux collections suivant : nombre de livres, distances
     public boolean compareCollections(Long collectionId1, Long collectionId2) {
         Optional<Collection> collectionOpt1 = collectionRepository.findById(collectionId1);
         Optional<Collection> collectionOpt2 = collectionRepository.findById(collectionId2);
@@ -160,10 +157,10 @@ public class CollectionService {
             Collection collection1 = collectionOpt1.get();
             Collection collection2 = collectionOpt2.get();
 
-            // Comparer le nombre de livres
+            //comparer le nombre de livres
             boolean sameNumberOfBooks = collection1.getBookIds().size() == collection2.getBookIds().size();
 
-            // Comparer les distances
+            //comparer les distances
             boolean sameDistances = collection1.getJaroWinklerDistance() == collection2.getJaroWinklerDistance() &&
                     collection1.getJaccardDistance() == collection2.getJaccardDistance();
 

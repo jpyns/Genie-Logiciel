@@ -21,12 +21,12 @@ public class DistanceService {
         this.jaroWinklerDistance = new JaroWinklerDistance();
         this.jaccardSimilarity = new JaccardSimilarity();
     }
-    // Méthode pour calculer la distance Jaro-Winkler entre deux chaînes
+    //  calculer la distance Jaro-Winkler entre 2 chaînes
     public double calculateJaroWinkler(String string1, String string2) {
         return jaroWinklerDistance.apply(string1, string2);
     }
 
-    // Méthode pour calculer la similarité Jaccard entre deux chaînes
+    //calculer la disatnce Jaccard entre 2 chaînes
     public double calculateJaccard(String string1, String string2) {
         return jaccardSimilarity.apply(string1, string2);
     }
@@ -48,19 +48,19 @@ public class DistanceService {
                     continue;
                 }
 
-                // Calcul des distances Jaro-Winkler et Jaccard
+                //calcul des distances Jaro-Winkler et Jaccard
                 double jaroWinkler =  calculateJaroWinkler(book1.getTitle(), book2.getTitle()) + calculateJaroWinkler(book1.getAuthor(), book2.getAuthor());
                 
                 double jaccard = calculateJaccard(book1.getTitle(), book2.getTitle()) + calculateJaccard(book1.getAuthor(), book2.getAuthor());
 
-                // Ajouter aux totaux
+                //ajouter aux totaux 
                 totalJaroWinkler += jaroWinkler;
                 totalJaccard += jaccard;
                 count++;
             }
         }
 
-        // Calculer la moyenne des distances
+        //calcul de la moyenne des distances 
         if (count > 0) {
             collection.setJaroWinklerDistance(totalJaroWinkler / count);
             collection.setJaccardDistance(totalJaccard / count);
