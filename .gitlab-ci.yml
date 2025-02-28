@@ -2,9 +2,16 @@ image: maven:3.9.9-eclipse-temurin-21
 
 stages:
   - test
+  - deploy
 
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+  AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+  AWS_REGION: "us-east-1"
+  EC2_INSTANCE_IP: "your-ec2-instance-ip"
+  EC2_SSH_USER: "ec2-user"  # Ou un autre utilisateur selon la configuration de ton instance EC2
+  EC2_KEY_PATH: "/path/to/your/key.pem"  # Chemin vers la clé privée de l'instance EC2
 
 test:
   stage: test
@@ -25,7 +32,19 @@ test:
     paths:
       - target/*
     expire_in: 24h
-script:
-- echo "Ma CI commence"
-- cp src/main/resources/application-ci.properties src/main/resources/application.properties
-- mvn clean test
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Déploiement sur AWS EC2"
+    - echo "Copying jar to EC2 instance"
+   
+    - scp -i $EC2_KEY_PATH target/*.jar $EC2_SSH_USER@$EC2_INSTANCE_IP:/home/$EC2_SSH_USER/
+  
+    - ssh -i $EC2_KEY_PATH $EC2_SSH_USER@$EC2_INSTANCE_IP 'nohup java -jar /home/$EC2_SSH_USER/*.jar > /home/$EC2_SSH_USER/app.log 2>&1 &'
+  only:
+    - main  
+  environment:
+    name: production
+    url: http://$EC2_INSTANCE_IP
+

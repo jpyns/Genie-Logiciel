@@ -5,4 +5,5 @@
 	java -version
 ### cloner le dépôt
 ### aller dans le répertoire créé
-### lancer ./mvnw spring-boot:run
+### pour lancer l'application :
+    ./mvnw spring-boot:run
