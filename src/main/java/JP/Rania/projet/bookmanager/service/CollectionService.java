@@ -65,7 +65,7 @@ public class CollectionService {
         return collectionRepository.findById(id);
     }
 
-    //la suppression d’un livre d’une collection
+    //la suppression d’une collection
     public boolean deleteCollection(Long id) {
         Optional<Collection> collection = getCollectionById(id);
         if (collection.isPresent()) {
@@ -75,13 +75,13 @@ public class CollectionService {
         return false;
     }
 
-    // Ajouter un livre à une collection
-    public boolean addBookFromCollection(Long collectionId, Long bookId) {
+    // l'ajout d'un livre à une collection
+    public boolean addBookToCollection(Long collectionId, Long bookId) {
         Optional<Collection> collectionOpt = collectionRepository.findById(collectionId);
         if (collectionOpt.isPresent()) {
             Collection collection = collectionOpt.get();
             
-            //supprimer l'id 
+            //ajouter l'id 
             collection.getBookIds().add(bookId);
             
             // recalculer les distances 
@@ -96,7 +96,7 @@ public class CollectionService {
     }
 
 
-    // supprimer un livre d'une collection
+    //la suppression d’une collection
     public boolean removeBookFromCollection(Long collectionId, Long bookId) {
         Optional<Collection> collectionOpt = collectionRepository.findById(collectionId);
         if (collectionOpt.isPresent()) {

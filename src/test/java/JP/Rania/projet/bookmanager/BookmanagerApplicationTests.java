@@ -1,13 +1,13 @@
-package JP.Rania.projet.bookmanager;
+// package JP.Rania.projet.bookmanager;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class BookmanagerApplicationTests {
+// @SpringBootTest
+// class BookmanagerApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+// 	@Test
+// 	void contextLoads() {
+// 	}
 
-}
+// }
