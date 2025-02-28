@@ -1,85 +1,113 @@
-// package JP.Rania.projet.bookmanager.controller;
+package JP.Rania.projet.bookmanager.controller;
 
-// import JP.Rania.projet.bookmanager.model.Book;
-// import JP.Rania.projet.bookmanager.repository.BookRepository;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
-// import org.mockito.InjectMocks;
-// import org.mockito.Mock;
-// import org.mockito.MockitoAnnotations;
-// import org.springframework.http.ResponseEntity;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// import java.util.ArrayList;
-// import java.util.List;
-// import java.util.Optional;
+import JP.Rania.projet.bookmanager.model.Book;
+import JP.Rania.projet.bookmanager.service.BookService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.MediaType;
 
-// import static org.junit.jupiter.api.Assertions.*;
-// import static org.mockito.Mockito.*;
+import java.util.Arrays;
+import java.util.Optional;
 
-// class BookControllerTest {
+@WebMvcTest(BookController.class)
+class BookControllerTest {
 
-//     @Mock
-//     private BookRepository bookRepository;
+    @Autowired
+    private MockMvc mockMvc;
 
-//     @InjectMocks
-//     private BookController bookController;
+    @MockBean
+    private BookService bookService;
 
-//     @BeforeEach
-//     void setUp() {
-//         MockitoAnnotations.openMocks(this);
-//     }
+    private ObjectMapper objectMapper = new ObjectMapper();
+    private Book book;
 
-//     @SuppressWarnings("deprecation")
-//     @Test
-//     void testGetAllBooks() {
-//         // Données de test mises à jour
-//         List<Book> books = new ArrayList<>();
-//         books.add(new Book(8L, "Hans Christian Andersen ", "Contes ", 1837, "Romanesque (recueil de contes) ", "Danemark "));
-//         books.add(new Book(9L, "Jane Austen ", "Orgueil et Préjugés ", 1813, "Romanesque (roman) ", "Royaume-Uni "));
-//         books.add(new Book(10L, "Honoré de Balzac ", "Le Père Goriot ", 1835, "Romanesque (roman) ", "France "));
-//         when(bookRepository.findAll()).thenReturn(books);
+    @BeforeEach
+    void setUp() {
+        book = new Book(1L, "Titre", "Auteur", 2024, "Genre", "Pays");
+    }
 
-//         // Appel de la méthode
-//         ResponseEntity<List<Book>> response = bookController.getAllBooks();
+    @Test
+    void testCreateBook() throws Exception {
+        when(bookService.saveBook(any(Book.class))).thenReturn(book);
 
-//         // Vérifications
-//         assertNotNull(response);
-//         assertEquals(200, response.getStatusCodeValue());
-//         assertEquals(books, response.getBody());
-//         verify(bookRepository, times(1)).findAll();
-//     }
+        mockMvc.perform(post("/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(book)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(book.getId()))
+                .andExpect(jsonPath("$.title").value(book.getTitle()));
+    }
 
-//     @SuppressWarnings("deprecation")
-//     @Test
-//     void testGetBookById_Found() {
-//         // Données de test mises à jour
-//         Book book = new Book(9L, "Jane Austen ", "Orgueil et Préjugés ", 1813, "Romanesque (roman) ", "Royaume-Uni ");
-//         when(bookRepository.findById(9L)).thenReturn(Optional.of(book));
+    @Test
+    void testGetAllBooks() throws Exception {
+        when(bookService.getAllBooks()).thenReturn(Arrays.asList(book));
 
-//         // Appel de la méthode
-//         ResponseEntity<Book> response = bookController.getBookById(9L);
+        mockMvc.perform(get("/books"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(book.getId()));
+    }
 
-//         // Vérifications
-//         assertNotNull(response);
-//         assertEquals(200, response.getStatusCodeValue());
-//         assertEquals(book, response.getBody());
-//         verify(bookRepository, times(1)).findById(9L);
-//     }
+    @Test
+    void testGetBookById_Found() throws Exception {
+        when(bookService.getBookById(1L)).thenReturn(Optional.of(book));
 
-//     @SuppressWarnings("deprecation")
-//     @Test
-//     void testGetBookById_NotFound() {
-//         // Configuration pour un livre non trouvé
-//         when(bookRepository.findById(11L)).thenReturn(Optional.empty());
+        mockMvc.perform(get("/books/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(book.getId()));
+    }
 
-//         // Appel de la méthode
-//         ResponseEntity<Book> response = bookController.getBookById(11L);
+    @Test
+    void testGetBookById_NotFound() throws Exception {
+        when(bookService.getBookById(1L)).thenReturn(Optional.empty());
 
-//         // Vérifications
-//         assertNotNull(response);
-//         assertEquals(404, response.getStatusCodeValue());
-//         verify(bookRepository, times(1)).findById(11L);
-//     }
-// }
+        mockMvc.perform(get("/books/1"))
+                .andExpect(status().isNotFound());
+    }
 
+    @Test
+    void testDeleteBook_Found() throws Exception {
+        when(bookService.deleteBook(1L)).thenReturn(true);
 
+        mockMvc.perform(delete("/books/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Book 1 supprimé"));
+    }
+
+    @Test
+    void testDeleteBook_NotFound() throws Exception {
+        when(bookService.deleteBook(1L)).thenReturn(false);
+
+        mockMvc.perform(delete("/books/1"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testUpdateBook_Found() throws Exception {
+        when(bookService.updateBook(eq(1L), any(Book.class))).thenReturn(Optional.of(book));
+
+        mockMvc.perform(put("/books/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(book)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(book.getId()));
+    }
+
+    @Test
+    void testUpdateBook_NotFound() throws Exception {
+        when(bookService.updateBook(eq(1L), any(Book.class))).thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/books/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(book)))
+                .andExpect(status().isNotFound());
+    }
+}

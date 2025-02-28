@@ -1,195 +1,93 @@
-// package JP.Rania.projet.bookmanager.controller;
+package JP.Rania.projet.bookmanager.controller;
 
-// import JP.Rania.projet.bookmanager.model.Collection;
-// import JP.Rania.projet.bookmanager.repository.BookRepository;
-// import JP.Rania.projet.bookmanager.repository.CollectionRepository;
-// import JP.Rania.projet.bookmanager.service.DistanceService;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
-// import org.mockito.InjectMocks;
-// import org.mockito.Mock;
-// import org.mockito.MockitoAnnotations;
-// import org.springframework.http.ResponseEntity;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// import java.util.ArrayList;
-// import java.util.List;
-// import java.util.Optional;
+import JP.Rania.projet.bookmanager.model.Collection;
+import JP.Rania.projet.bookmanager.service.CollectionService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.MediaType;
 
-// import static org.junit.jupiter.api.Assertions.*;
-// import static org.mockito.Mockito.*;
+import java.util.Arrays;
+import java.util.Optional;
 
-// class CollectionControllerTest {
+@WebMvcTest(CollectionController.class)
+class CollectionControllerTest {
 
-//     @Mock
-//     private CollectionRepository collectionRepository;
+    @Autowired
+    private MockMvc mockMvc;
 
-//     @Mock
-//     private BookRepository bookRepository;
+    @MockBean
+    private CollectionService collectionService;
 
-//     @Mock
-//     private DistanceService distanceService;
+    private ObjectMapper objectMapper = new ObjectMapper();
+    private Collection collection;
 
-//     @InjectMocks
-//     private CollectionController collectionController;
+    @BeforeEach
+    void setUp() {
+        collection = new Collection(1L, "CollectionTest", Arrays.asList(1L, 2L), 0, 0);
+    }
 
-//     @BeforeEach
-//     void setUp() {
-//         MockitoAnnotations.openMocks(this);
-//     }
+    @Test
+    void testCreateCollection() throws Exception {
+        when(collectionService.createCollection(anyString(), anyList())).thenReturn(collection);
 
-//     @SuppressWarnings("deprecation")
-//     @Test
-//     void testGetAllCollections() {
-//         // Données de test
-//         List<Collection> collections = new ArrayList<>();
-//         collections.add(new Collection(7L, "Romanesque (recueil de contes)", new ArrayList<>(), 0.0, 0.0));
-//         collections.add(new Collection(8L, "Romanesque (roman)", new ArrayList<>(), 0.0, 0.0));
-//         when(collectionRepository.findAll()).thenReturn(collections);
+        mockMvc.perform(post("/collections")
+                .param("name", "CollectionTest")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Arrays.asList(1L, 2L))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(collection.getId()))
+                .andExpect(jsonPath("$.name").value(collection.getName()));
+    }
 
-//         // Appel de la méthode
-//         ResponseEntity<List<Collection>> response = collectionController.getAllCollections();
+    @Test
+    void testGetAllCollections() throws Exception {
+        when(collectionService.getAllCollections()).thenReturn(Arrays.asList(collection));
 
-//         // Vérifications
-//         assertNotNull(response);
-//         assertEquals(200, response.getStatusCodeValue());
-//         assertEquals(collections, response.getBody());
-//         verify(collectionRepository, times(1)).findAll();
-//     }
+        mockMvc.perform(get("/collections"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(collection.getId()));
+    }
 
-//     @SuppressWarnings("deprecation")
-//     @Test
-//     void testGetCollectionById_Found() {
-//         // Données de test
-//         Collection collection = new Collection(8L, "Romanesque (roman)", new ArrayList<>(), 0.0, 0.0);
-//         when(collectionRepository.findById(8L)).thenReturn(Optional.of(collection));
+    @Test
+    void testGetCollectionById_Found() throws Exception {
+        when(collectionService.getCollectionById(1L)).thenReturn(Optional.of(collection));
 
-//         // Appel de la méthode
-//         ResponseEntity<Collection> response = collectionController.getCollectionById(8L);
+        mockMvc.perform(get("/collections/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(collection.getId()));
+    }
 
-//         // Vérifications
-//         assertNotNull(response);
-//         assertEquals(200, response.getStatusCodeValue());
-//         assertEquals(collection, response.getBody());
-//         verify(collectionRepository, times(1)).findById(8L);
-//     }
+    @Test
+    void testGetCollectionById_NotFound() throws Exception {
+        when(collectionService.getCollectionById(1L)).thenReturn(Optional.empty());
 
-//     @SuppressWarnings("deprecation")
-//     @Test
-//     void testGetCollectionById_NotFound() {
-//         when(collectionRepository.findById(99L)).thenReturn(Optional.empty());
+        mockMvc.perform(get("/collections/1"))
+                .andExpect(status().isNotFound());
+    }
 
-//         // Appel de la méthode
-//         ResponseEntity<Collection> response = collectionController.getCollectionById(99L);
+    @Test
+    void testDeleteCollection_Found() throws Exception {
+        when(collectionService.deleteCollection(1L)).thenReturn(true);
 
-//         // Vérifications
-//         assertNotNull(response);
-//         assertEquals(404, response.getStatusCodeValue());
-//         verify(collectionRepository, times(1)).findById(99L);
-//     }
+        mockMvc.perform(delete("/collections/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Collection 1 supprimée"));
+    }
 
-//     @SuppressWarnings({ "deprecation", "null" })
-//     // @Test
-//     // void testAddBookToCollection_BookFound() {
-//     //     // Données de test
-//     //     Collection collection = new Collection(7L, "Romanesque (recueil de contes)", new ArrayList<>(), 0.0, 0.0);
-//     //     when(collectionRepository.findById(7L)).thenReturn(Optional.of(collection));
-//     //     when(bookRepository.existsById(1L)).thenReturn(true);
+    @Test
+    void testDeleteCollection_NotFound() throws Exception {
+        when(collectionService.deleteCollection(1L)).thenReturn(false);
 
-//     //     // Appel de la méthode
-//     //     ResponseEntity<Collection> response = collectionController.addBookToCollection(7L, 1L);
-
-//     //     // Vérifications
-//     //     assertNotNull(response);
-//     //     assertEquals(200, response.getStatusCodeValue());
-//     //     assertTrue(response.getBody().getBookIds().contains(1L));
-//     //     verify(collectionRepository, times(1)).save(collection);
-//     // }
-
-
-
-
-
-//     @Test
-//     void testAddBookToCollection_BookFound() {
-//         // Données de test
-//         Collection collection = new Collection(7L, "Romanesque (recueil de contes)", new ArrayList<>(), 0.0, 0.0);
-//         Collection updatedCollection = new Collection(7L, "Romanesque (recueil de contes)", new ArrayList<>(List.of(1L)), 0.0, 0.0);
-    
-//         when(collectionRepository.findById(7L)).thenReturn(Optional.of(collection));
-//         when(bookRepository.existsById(1L)).thenReturn(true);
-//         when(collectionRepository.save(collection)).thenReturn(updatedCollection);
-    
-//         // Appel de la méthode
-//         ResponseEntity<Collection> response = collectionController.addBookToCollection(7L, 1L);
-    
-//         // Vérifications
-//         assertNotNull(response);
-//         assertEquals(200, response.getStatusCodeValue());
-//         assertNotNull(response.getBody());
-//         assertTrue(response.getBody().getBookIds().contains(1L));
-//         verify(collectionRepository, times(1)).save(collection);
-//     }
-    
-
-
-
-
-
-
-
-
-//     @SuppressWarnings("deprecation")
-//     @Test
-//     void testAddBookToCollection_BookNotFound() {
-//         // Données de test
-//         Collection collection = new Collection(7L, "Romanesque (recueil de contes)", new ArrayList<>(), 0.0, 0.0);
-//         when(collectionRepository.findById(7L)).thenReturn(Optional.of(collection));
-//         when(bookRepository.existsById(99L)).thenReturn(false);
-
-//         // Appel de la méthode
-//         ResponseEntity<Collection> response = collectionController.addBookToCollection(7L, 99L);
-
-//         // Vérifications
-//         assertNotNull(response);
-//         assertEquals(404, response.getStatusCodeValue());
-//         verify(collectionRepository, never()).save(collection);
-//     }
-
-//     @SuppressWarnings("deprecation")
-//     @Test
-//     void testCompareCollectionsJaroWinkler() {
-//         // Données de test
-//         Collection collection1 = new Collection(7L, "Romanesque (recueil de contes)", new ArrayList<>(), 0.0, 0.0);
-//         Collection collection2 = new Collection(8L, "Romanesque (roman)", new ArrayList<>(), 0.0, 0.0);
-//         when(collectionRepository.findById(7L)).thenReturn(Optional.of(collection1));
-//         when(collectionRepository.findById(8L)).thenReturn(Optional.of(collection2));
-//         when(distanceService.calculateJaroWinkler(collection1.getName(), collection2.getName())).thenReturn(0.85);
-
-//         // Appel de la méthode
-//         ResponseEntity<Double> response = collectionController.compareCollectionsJaroWinkler(7L, 8L);
-
-//         // Vérifications
-//         assertNotNull(response);
-//         assertEquals(200, response.getStatusCodeValue());
-//         assertEquals(0.85, response.getBody());
-//     }
-
-//     @SuppressWarnings("deprecation")
-//     @Test
-//     void testCompareCollectionsJaccard() {
-//         // Données de test
-//         Collection collection1 = new Collection(7L, "Romanesque (recueil de contes)", new ArrayList<>(), 0.0, 0.0);
-//         Collection collection2 = new Collection(8L, "Romanesque (roman)", new ArrayList<>(), 0.0, 0.0);
-//         when(collectionRepository.findById(7L)).thenReturn(Optional.of(collection1));
-//         when(collectionRepository.findById(8L)).thenReturn(Optional.of(collection2));
-//         when(distanceService.calculateJaccard(collection1.getName(), collection2.getName())).thenReturn(0.67);
-
-//         // Appel de la méthode
-//         ResponseEntity<Double> response = collectionController.compareCollectionsJaccard(7L, 8L);
-
-//         // Vérifications
-//         assertNotNull(response);
-//         assertEquals(200, response.getStatusCodeValue());
-//         assertEquals(0.67, response.getBody());
-//     }
-// }
+        mockMvc.perform(delete("/collections/1"))
+                .andExpect(status().isNotFound());
+    }
+}

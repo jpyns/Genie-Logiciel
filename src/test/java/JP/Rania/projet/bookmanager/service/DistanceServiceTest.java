@@ -1,70 +1,69 @@
 package JP.Rania.projet.bookmanager.service;
 
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-// import static org.junit.jupiter.api.Assertions.*;
+import JP.Rania.projet.bookmanager.model.Book;
+import JP.Rania.projet.bookmanager.model.Collection;
+import JP.Rania.projet.bookmanager.repository.CollectionRepository;
+import org.apache.commons.text.similarity.JaroWinklerDistance;
+import org.apache.commons.text.similarity.JaccardSimilarity;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+import java.util.Optional;
+
+@ExtendWith(MockitoExtension.class)
 class DistanceServiceTest {
 
-    // private DistanceService distanceService;
+    @Mock
+    private BookService bookService;
 
-    // @BeforeEach
-    // void setUp() {
-    //     distanceService = new DistanceService();
-    // }
+    @Mock
+    private CollectionRepository collectionRepository;
 
-    // @Test
-    // void testCalculateJaroWinkler() {
-    //     // Cas 1 : Chaînes identiques → Distance maximale (1.0)
-    //     assertEquals(1.0, distanceService.calculateJaroWinkler("hello", "hello"), 0.001);
+    @InjectMocks
+    private DistanceService distanceService;
 
-    //     // Cas 2 : Chaînes complètement différentes → Distance faible
-    //     double distance = distanceService.calculateJaroWinkler("hello", "world");
-    //     assertTrue(distance >= 0.0 && distance <= 1.0);
+    private Collection collection;
+    private Book book1;
+    private Book book2;
 
-    //     // Cas 3 : Chaînes partiellement similaires → Distance intermédiaire
-    //     assertTrue(distanceService.calculateJaroWinkler("hello", "helo") > 0.8);
-    // }
+    @BeforeEach
+    void setUp() {
+        book1 = new Book(1L, "Book1", "Author1", 2024, "Genre1", "Country1");
+        book2 = new Book(2L, "Book2", "Author2", 2023, "Genre2", "Country2");
+        collection = new Collection(1L, "CollectionTest", Arrays.asList(1L, 2L), 0, 0);
+    }
 
-    // @Test
-    // void testCalculateJaccard() {
-    //     // Cas 1 : Chaînes identiques → Similarité maximale (1.0)
-    //     assertEquals(1.0, distanceService.calculateJaccard("hello", "hello"), 0.001);
+    @Test
+    void testCalculateJaroWinkler() {
+        double similarity = distanceService.calculateJaroWinkler("hello", "helo");
+        assertTrue(similarity > 0 && similarity <= 1);
+    }
 
-    //     // Cas 2 : Chaînes complètement différentes → Similarité faible
-    //     double similarity = distanceService.calculateJaccard("hello", "world");
-    //     assertTrue(similarity >= 0.0 && similarity <= 1.0);
+    @Test
+    void testCalculateJaccard() {
+        double similarity = distanceService.calculateJaccard("hello", "helo");
+        assertTrue(similarity >= 0 && similarity <= 1);
+    }
 
-    //     // Cas 3 : Chaînes partiellement similaires → Similarité intermédiaire
-    //     assertTrue(distanceService.calculateJaccard("hello", "helo") > 0.2);
-    // }
+    @Test
+    void testCalculateDistancesCollection() {
+        when(bookService.getBookById(1L)).thenReturn(Optional.of(book1));
+        when(bookService.getBookById(2L)).thenReturn(Optional.of(book2));
+        when(collectionRepository.save(any(Collection.class))).thenReturn(collection);
 
-    // @Test
-    // void testCalculateJaroWinkler_WithEmptyStrings() {
-    //     // Comparaison de chaînes vides
-    //     assertEquals(0.0, distanceService.calculateJaroWinkler("", ""), 0.001);
-    //     assertEquals(0.0, distanceService.calculateJaroWinkler("hello", ""), 0.001);
-    // }
+        Collection updatedCollection = distanceService.calculateDistancesCollection(collection);
 
-    // @Test
-    // void testCalculateJaccard_WithEmptyStrings() {
-    //     // Comparaison de chaînes vides : Jaccard retourne 1.0 si les deux chaînes sont vides
-    //     assertEquals(1.0, distanceService.calculateJaccard("", ""), 0.001);
-    //     assertEquals(0.0, distanceService.calculateJaccard("hello", ""), 0.001);
-    // }
-
-    // @Test
-    // void testCalculateJaroWinkler_NullInput() {
-    //     // Attendu : IllegalArgumentException au lieu de NullPointerException
-    //     assertThrows(IllegalArgumentException.class, () -> distanceService.calculateJaroWinkler(null, "test"));
-    //     assertThrows(IllegalArgumentException.class, () -> distanceService.calculateJaroWinkler("test", null));
-    // }
-
-    // @Test
-    // void testCalculateJaccard_NullInput() {
-    //     // Attendu : IllegalArgumentException au lieu de NullPointerException
-    //     assertThrows(IllegalArgumentException.class, () -> distanceService.calculateJaccard(null, "test"));
-    //     assertThrows(IllegalArgumentException.class, () -> distanceService.calculateJaccard("test", null));
-    // }
+        assertNotNull(updatedCollection);
+        assertTrue(updatedCollection.getJaroWinklerDistance() >= 0);
+        assertTrue(updatedCollection.getJaccardDistance() >= 0);
+    }
 }
+
