@@ -1,0 +1,31 @@
+image: maven:3.9.9-eclipse-temurin-21
+
+stages:
+  - test
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+test:
+  stage: test
+  allow_failure: true
+  services:
+    - postgres:latest
+  variables:
+    POSTGRES_DB: db_bookcollection
+    POSTGRES_USER: db_user
+    POSTGRES_PASSWORD: db_password
+    POSTGRES_HOST_AUTH_METHOD: trust
+  script:
+    - echo "Executing SpringBoot scenarios with maven"
+    - mvn clean test
+  artifacts:
+    when: always
+    name: "SpringBoot Report"
+    paths:
+      - target/*
+    expire_in: 24h
+script:
+- echo "Ma CI commence"
+- cp src/main/resources/application-ci.properties src/main/resources/application.properties
+- mvn clean test
