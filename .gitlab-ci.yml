@@ -10,8 +10,8 @@ variables:
   AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
   AWS_REGION: "us-east-1"
   EC2_INSTANCE_IP: "your-ec2-instance-ip"
-  EC2_SSH_USER: "ec2-user"  # Ou un autre utilisateur selon la configuration de ton instance EC2
-  EC2_KEY_PATH: "/path/to/your/key.pem"  # Chemin vers la clé privée de l'instance EC2
+  EC2_SSH_USER: "ec2-user" 
+  EC2_KEY_PATH: "/path/to/your/key.pem"  #  clé privée de l'instance EC2
 
 test:
   stage: test
